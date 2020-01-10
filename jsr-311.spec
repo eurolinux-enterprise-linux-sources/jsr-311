@@ -1,6 +1,6 @@
 Name: jsr-311
 Version: 1.1.1
-Release: 4%{?dist}
+Release: 6%{?dist}
 Summary: JAX-RS: Java API for RESTful Web Services
 Group: Development/Libraries
 License: CDDL
@@ -13,20 +13,11 @@ Source0: %{name}-%{version}.tgz
 # Patch the POM:
 Patch0: %{name}-pom.patch
 
-BuildRequires: java-devel
-BuildRequires: jpackage-utils
-
 BuildRequires: buildnumber-maven-plugin
 BuildRequires: junit
 BuildRequires: maven-local
-BuildRequires: maven-compiler-plugin
-BuildRequires: maven-jar-plugin
-BuildRequires: maven-javadoc-plugin
 BuildRequires: maven-plugin-bundle
 BuildRequires: maven-source-plugin
-
-Requires: jpackage-utils
-Requires: java
 
 BuildArch: noarch
 
@@ -37,8 +28,6 @@ JAX-RS: Java API for RESTful Web Services
 
 %package javadoc
 Summary: Javadocs for %{name}
-Group: Documentation
-Requires: jpackage-utils
 
 
 %description javadoc
@@ -49,43 +38,30 @@ This package contains javadoc for %{name}.
 %setup -q
 %patch0
 
+%mvn_file : %{name}
+
 
 %build
-mvn-rpmbuild \
-  -Dproject.build.sourceEncoding=UTF-8 \
-  install \
-  javadoc:aggregate
+%mvn_build -- -Dproject.build.sourceEncoding=UTF-8
 
 
 %install
-
-# Jar files:
-install -d -m 755 %{buildroot}%{_javadir}
-install -pm 644 target/jsr311-api-%{version}.jar %{buildroot}%{_javadir}/%{name}.jar
-
-# POM files:
-install -d -m 755 %{buildroot}%{_mavenpomdir}
-install -pm 644 pom.xml %{buildroot}%{_mavenpomdir}/JPP-%{name}.pom
-
-# Javadoc files:
-install -d -m 755 %{buildroot}%{_javadocdir}/%{name}
-cp -rp target/site/apidocs/* %{buildroot}%{_javadocdir}/%{name}/.
-
-# Dependencies map:
-%add_maven_depmap JPP-%{name}.pom %{name}.jar
+%mvn_install
 
 
-%files
-%{_javadir}/*.jar
-%{_mavenpomdir}/*
-%{_mavendepmapfragdir}/*
+%files -f .mfiles
 
 
-%files javadoc
-%{_javadocdir}/%{name}
+%files javadoc -f .mfiles-javadoc
 
 
 %changelog
+* Fri Dec 27 2013 Daniel Mach <dmach@redhat.com> - 1.1.1-6
+- Mass rebuild 2013-12-27
+
+* Wed Nov 13 2013 Mikolaj Izdebski <mizdebsk@redhat.com> - 1.1.1-5
+- Update to current packaging guidelines
+
 * Thu Feb 14 2013 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 1.1.1-4
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_19_Mass_Rebuild
 
